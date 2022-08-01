@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+
+  mindswap-app-mariadb:
+    image: customer_service
+    container_name: mindswap-app-3
+    depends_on:
+      mindswap-mariadb:
+        condition: service_healthy
+    ports:
+      - '8082:8080'
+    environment:
+      SPRING_DATA_SOURCE: org.mariadb.jdbc.Driver
+      MARIADB_DB: 'customers_2022'
+      MARIADB_USER: 'root'
+      MARIADB_PASSWORD: 'mypass'
+      DATABASE_URL: jdbc:mariadb://mindswap-mariadb:3306/customers_2022
+      SERVER_PORT: '8080'
+      HIBERNATE_DDL_AUTO: 'none'
+      SPRING_PROFILES_ACTIVE: 'docker'
+    networks:
+      - mindswap-net
+
+  mindswap-mariadb:
+    image: mariadb:latest
+    container_name: mindswap-mariadb
+    ports:
+      - '3307:3306'
+    healthcheck:
+      test: "/usr/bin/mysql --user=root --password=mypass --execute \"SHOW DATABASES;\""
+      interval: 3s
+      timeout: 1s
+      retries: 10
+    environment:
+      MARIADB_ROOT_PASSWORD: 'mypass'
+      MARIADB_DATABASE: 'customers_2022'
+    restart: always
+    networks:
+      - mindswap-net
+networks:
+  mindswap-net:
+    driver: bridge
